@@ -2,14 +2,167 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Malla Interactiva - Contador Público</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Curricular Interactiva</title>
   <link rel="stylesheet" href="estilos.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f1e8d8;
+      color: #000000;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+    }
+    .contenedor {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .materia {
+      padding: 1rem;
+      border: 2px solid #67734c;
+      background-color: #cfc2a6;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: 0.3s;
+    }
+    .materia:hover {
+      background-color: #959c74;
+    }
+    .bloqueada {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .aprobada {
+      background-color: #67734c;
+      color: white;
+    }
+  </style>
 </head>
 <body>
   <h1>Malla Curricular Interactiva - Contador Público (UdelaR)</h1>
-  <div id="malla"></div>
-  <script src="script.js"></script>
+  <div id="malla" class="contenedor"></div>
+  <script>
+    const materias = [
+      // 1er semestre
+      { nombre: "Conceptos Contables", id: "conceptos" },
+      { nombre: "ADM. y Gestión de las Org.", id: "gestionorg" },
+      { nombre: "Introducción a la Microeconomía", id: "micro1" },
+      { nombre: "Análisis de las Interac. Económicas", id: "interacciones" },
+      { nombre: "Cálculo 1A", id: "calculo1a" },
+
+      // 2do semestre
+      { nombre: "Contabilidad General I", id: "contab1" },
+      { nombre: "Derecho y Act. Empresarial I", id: "derecho1" },
+      { nombre: "Cálculo 1B", id: "calculo1b", req: ["calculo1a"] },
+      { nombre: "Introducción a la Macroeconomía", id: "macro1" },
+      { nombre: "Ciencia Política", id: "politica" },
+
+      // 3er semestre
+      { nombre: "Contabilidad General II", id: "contab2", req: ["contab1"] },
+      { nombre: "Derecho y Act. Empresarial II", id: "derecho2", req: ["derecho1"] },
+      { nombre: "Introducción a la Estadística", id: "estadistica" },
+      { nombre: "Procesos Contables", id: "procesos" },
+      { nombre: "Matemática Financiera", id: "matfin" },
+
+      // 4to semestre
+      { nombre: "Introducción a Blockchain", id: "blockchain" },
+      { nombre: "Contabilidad General III", id: "contab3", req: ["contab2"] },
+      { nombre: "Derecho Digital", id: "ddigital" },
+      { nombre: "Legis. Laboral y Seguridad Social", id: "laboral" },
+      { nombre: "Prin. Análisis Macroecon. Aplicado", id: "macroapl" },
+
+      // 5to semestre
+      { nombre: "Modelos y Sistemas de Costos", id: "costos" },
+      { nombre: "Derecho Tributario", id: "dtributario" },
+      { nombre: "Contab. Social y Ambiental", id: "social" },
+      { nombre: "Ética y Ejercicio Profesional", id: "etica" },
+      { nombre: "Ética y Responsabilidad Social", id: "responsabilidad" },
+
+      // 6to semestre
+      { nombre: "Contabilidad Superior I", id: "superior1" },
+      { nombre: "Contabilidad Gerencial", id: "gerencial" },
+      { nombre: "Tributaria I", id: "tributaria1" },
+      { nombre: "ADM. y Planificación Financiera", id: "admplan" },
+      { nombre: "Control Interno", id: "control" },
+
+      // 7mo semestre
+      { nombre: "Auditoría I", id: "auditoria1" },
+      { nombre: "Tributaria II", id: "tributaria2", req: ["tributaria1"] },
+      { nombre: "Finanzas Corporativas", id: "finanzas" },
+      { nombre: "Marketing Estratégico", id: "marketing" },
+      { nombre: "Auditoría Interna", id: "auditoria2" },
+
+      // 8vo semestre
+      { nombre: "Informes Prof. del Cont. Público", id: "informes" },
+      { nombre: "Cont. en Sist. Integrados de Gestión", id: "sistemas" },
+      { nombre: "Proyectos de Inversión", id: "inversion" },
+      { nombre: "Unidad de Prácticas Curriculares", id: "upc" }
+    ];
+
+    const completadas = new Set();
+
+    function crearMalla() {
+      const contenedor = document.getElementById("malla");
+      materias.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "materia";
+        div.textContent = m.nombre;
+        div.id = m.id;
+        if (m.req) div.classList.add("bloqueada");
+        div.addEventListener("click", () => marcarAprobada(m.id));
+        contenedor.appendChild(div);
+      });
+    }
+
+    function marcarAprobada(id) {
+      const div = document.getElementById(id);
+      div.classList.remove("bloqueada");
+      div.classList.add("aprobada");
+      div.removeEventListener("click", () => marcarAprobada(id));
+      completadas.add(id);
+      desbloquearMaterias();
+    }
+
+    function desbloquearMaterias() {
+      materias.forEach(m => {
+        if (m.req && m.req.every(r => completadas.has(r))) {
+          const div = document.getElementById(m.id);
+          if (div && div.classList.contains("bloqueada")) {
+            div.classList.remove("bloqueada");
+          }
+        }
+      });
+
+      const porSemestre = [
+        ["conceptos", "gestionorg", "micro1", "interacciones", "calculo1a"],
+        ["contab1", "derecho1", "calculo1b", "macro1", "politica"],
+        ["contab2", "derecho2", "estadistica", "procesos", "matfin"],
+        ["blockchain", "contab3", "ddigital", "laboral", "macroapl"],
+        ["costos", "dtributario", "social", "etica", "responsabilidad"],
+        ["superior1", "gerencial", "tributaria1", "admplan", "control"],
+        ["auditoria1", "tributaria2", "finanzas", "marketing", "auditoria2"],
+        ["informes", "sistemas", "inversion", "upc"]
+      ];
+
+      porSemestre.forEach((grupo, i) => {
+        const grupoAprobado = grupo.every(id => completadas.has(id));
+        if (grupoAprobado && porSemestre[i + 1]) {
+          porSemestre[i + 1].forEach(id => {
+            const div = document.getElementById(id);
+            if (div && div.classList.contains("bloqueada")) {
+              div.classList.remove("bloqueada");
+            }
+          });
+        }
+      });
+    }
+
+    crearMalla();
+  </script>
 </body>
 </html>
-
